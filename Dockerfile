@@ -7,8 +7,10 @@ WORKDIR /app
 COPY app /app
 COPY requirements.txt /app/requirements.txt
 
-# Устанавливаем Python и зависимости
-RUN apt-get update && apt-get install -y python3 python3-pip && \
+# Устанавливаем Python, Rust и зависимости
+RUN apt-get update && apt-get install -y python3 python3-pip curl && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    export PATH="$HOME/.cargo/bin:$PATH" && \
     pip3 install --no-cache-dir -r /app/requirements.txt
 
 # Открываем порт 5000
