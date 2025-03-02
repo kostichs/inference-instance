@@ -1,26 +1,23 @@
+# Используем базовый образ с CUDA 11.8 и PyTorch
 FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
 
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-RUN echo "WORKDIR set to /app"
+# Копируем файлы проекта
+COPY . .
 
-COPY app /app
-COPY requirements.txt /app/requirements.txt
-
-RUN echo "Files in /app after COPY:" && ls -R /app
-
+# Устанавливаем Python, Rust и зависимости
 RUN apt-get update && apt-get install -y python3 python3-pip curl && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
     export PATH="$HOME/.cargo/bin:$PATH" && \
-    echo "Python version:" && python3 --version && \
-    echo "Pip version:" && pip3 --version && \
-    echo "Installing dependencies..." && \
-    pip3 install --no-cache-dir -r /app/requirements.txt
+    pip3 install --no-cache-dir -r requirements.txt
 
-RUN echo "Installed Python packages:" && pip3 list
-
-RUN echo "Final file structure in /app:" && ls -R /app
-
+# Открываем порт 5000
 EXPOSE 5000
 
-CMD ["sh", "-c", "echo 'Starting Uvicorn...'; uvicorn --app-dir /app app.model:app --host 0.0.0.0 --port 5000"]
+# Устанавливаем PYTHONPATH, чтобы Docker находил `app`
+ENV PYTHONPATH=/app
+
+# Запускаем FastAPI через Uvicorn
+CMD ["uvicorn", "app.model:app", "--host", "0.0.0.0", "--port", "5000"]
